@@ -1,26 +1,26 @@
 const chai = require('chai');
 const assert = chai.assert;
 
-const Tank = require('../lib/tank');
+const Alien = require('../lib/alien');
 
-describe('Tank', function() {
+describe('Alien', function() {
   context('default attributes', function() {
-    var tank = new Tank({ x: 1200, y: 600});
+    var alien = new Alien({ x: 550, y: 550});
 
     it('should assign an x coordinate', function() {
-      assert.equal(tank.x, 489);
+      assert.equal(alien.x, 550);
     });
 
     it('should assign a y coordinate', function() {
-      assert.equal(tank.y, 500);
+      assert.equal(alien.y, 550);
     });
 
     it('should assign a width', function(){
-      assert.equal(tank.size.x, 222);
+      assert.equal(alien.size.x, 60);
     });
 
     it('should assign a height', function(){
-      assert.equal(tank.size.y, 100);
+      assert.equal(alien.size.y, 60);
     });
   });
 });
