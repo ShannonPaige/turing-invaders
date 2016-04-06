@@ -1,9 +1,45 @@
-canvas {
+header {
   background:black;
   padding-left: 0;
   padding-right: 0;
   margin-left: auto;
   margin-right: auto;
   display: block;
+  width: 800px;
+  float: left;
+}
+
+canvas {
+  float: left;
+  background:black;
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: 0;
+  margin-right: auto;
+  display: block;
   width: 1200px;
+}
+
+section {
+  float: left;
+  height: 600px;
+  background:black;
+  padding-left: 0;
+  padding-right: 30px;
+  margin-left: auto;
+  margin-right: 0;
+  display: block;
+}
+
+h1, h2, h3, p, form {
+  color: white;
+  font-family: 'Press Start 2P', cursive;
+}
+
+p {
+  padding-bottom: 50px;
+}
+
+.hidden {
+  display: none;
 }
