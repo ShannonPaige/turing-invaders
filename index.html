@@ -3,10 +3,26 @@
 <head>
   <meta charset="utf-8">
   <link rel="stylesheet" type="text/css" href="custom.css">
+  <link href='https://fonts.googleapis.com/css?family=Press+Start+2P' rel='stylesheet' type='text/css'>
   <title>Game Time</title>
 </head>
 <body>
-  <canvas id="screen" width="1200px" height="600px"></canvas>
+  <header>
+    <h1>SPACE INVADERS</h1>
+    <h3> Use your arrow keys to move left and right, and your space bar to shoot</h3>
+  </header>
+  <div class="columns">
+    <canvas id="screen" width="1200px" height="600px"></canvas>
+    <section><h2>current score</h2><p id="current_score"></p><h2>HIGH SCORE</h2><p id="high_score"></p>
+      <form id="form" class="hidden"> Congratulations<br>You Got The HIGH SCORE<br>Enter Your Initials<br>
+        <input type="text" id="input" name="initials"><br>
+        <input type="submit" id="button" value="Let's Go"><br>
+        <p>
+          Your score will not be <br>saved unless you enter<br> your initials
+        </p>
+      </form>
+    </section>
+  </div>
   <script src="main.bundle.js"></script>
 </body>
 </html>
