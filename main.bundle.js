@@ -94,6 +94,9 @@
 	          requestAnimationFrame(tick);
 	          break;
 	        case "won":
+	          speed += 0.5;
+	          fireSpeed += 1;
+	          fireRate -= 0.003;
 	          won(context, gameSize, game, speed, fireSpeed, fireRate, winImage);
 	          break;
 	        case "lost":
@@ -125,9 +128,6 @@
 	  context.clearRect(0, 0, gameSize.x, gameSize.y);
 	  renderWin(context, winImage);
 	  game.status = "inGame";
-	  speed += 0.5;
-	  fireSpeed += 1;
-	  fireRate -= 0.003;
 	}
 
 	function lost(context, gameSize, game, speed, fireSpeed, fireRate, loseImage) {
@@ -371,6 +371,7 @@
 
 	Level.prototype.addBody = function (body) {
 	  this.bodies.push(body);
+	  console.log(this.bodies[1]);
 	};
 
 	Level.prototype.collision = function (body1, body2) {

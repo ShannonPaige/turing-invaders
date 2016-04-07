@@ -217,6 +217,7 @@
 
 	Level.prototype.addBody = function (body) {
 	  this.bodies.push(body);
+	  console.log(this.bodies[1]);
 	};
 
 	Level.prototype.collision = function (body1, body2) {
