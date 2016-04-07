@@ -6,7 +6,7 @@ A JavaScript version of [Space Invaders](https://en.wikipedia.org/wiki/Space_Inv
 
 ### How to play
 
-Visit [http://shannonpaige.github.io/turing-invaders/) to play the game.
+Visit [http://shannonpaige.github.io/turing-invaders/] to play the game.
 
 Use the left and right arrow keys to move the tank left and right. Avoid being shot by the aliens. Use the space bar to shoot at the aliens. Each level will get harder until you die. Try to beat your high score!
 
