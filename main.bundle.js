@@ -82,15 +82,13 @@
 	    renderStart(context, startImage);
 	  };
 	  var game = new Game(gameSize, context);
-	  var speed = 1;
-	  var fireSpeed = 3;
+	  var speed = 0.5;
+	  var fireSpeed = 2;
 	  var fireRate = 0.995;
 	  canvas.onclick = function () {
 	    game.level = new Level(gameSize, context, speed);
-	    speed += 1;
-	    fireSpeed += 1;
-	    fireRate -= 0.003;
 	    var counter = 0;
+	    console.log(speed, fireSpeed, fireRate);
 	    var tick = function tick() {
 	      switch (game.status) {
 	        case "inGame":
@@ -102,19 +100,20 @@
 	          requestAnimationFrame(tick);
 	          break;
 	        case "won":
-	          console.log("Winning Level");
 	          context.clearRect(0, 0, gameSize.x, gameSize.y);
 	          renderWin(context, winImage);
 	          game.status = "inGame";
+	          speed += 0.5;
+	          fireSpeed += 1;
+	          fireRate -= 0.003;
 	          break;
 	        case "lost":
-	          console.log("Lost");
 	          context.clearRect(0, 0, gameSize.x, gameSize.y);
 	          renderLose(context, loseImage);
 	          game.status = "newGame";
 	          var highScore = localStorage.getItem('points');
-	          speed = 1;
-	          fireSpeed = 3;
+	          speed = 0.5;
+	          fireSpeed = 1;
 	          fireRate = 0.995;
 	          if (game.points > highScore) {
 	            document.getElementById('form').classList.remove("hidden");
@@ -150,15 +149,15 @@
 	}
 
 	function renderStart(context, image) {
-	  context.drawImage(image, 450, 100);
+	  context.drawImage(image, 150, 100);
 	}
 
 	function renderLose(context, image) {
-	  context.drawImage(image, 250, 50, 500, 500);
+	  context.drawImage(image, 150, 50, 200, 200);
 	}
 
 	function renderWin(context, image) {
-	  context.drawImage(image, 250, 50, 500, 250);
+	  context.drawImage(image, 150, 50, 200, 150);
 	}
 
 	function update(game) {
@@ -169,10 +168,8 @@
 	    return body instanceof Tank;
 	  });
 	  if (tank.length > 0 && aliens.length === 0) {
-	    console.log("Yow won");
 	    game.status = "won";
 	  } else if (aliens.length > 0 && tank.length === 0) {
-	    console.log("You lost");
 	    game.status = "lost";
 	  }
 	}
@@ -201,7 +198,7 @@
 	var Bullet = __webpack_require__(4);
 
 	var Tank = function Tank(gameSize) {
-	  this.size = { x: 222, y: 50 };
+	  this.size = { x: 111, y: 25 };
 	  this.x = (gameSize.x - this.size.x) / 2;
 	  this.y = gameSize.y - this.size.y;
 	  this.image = new Image();
@@ -221,23 +218,23 @@
 	};
 
 	Tank.prototype.moveRight = function () {
-	  if (this.x < 1200 - this.size.x) {
-	    this.x += 10;
+	  if (this.x < 600 - this.size.x) {
+	    this.x += 5;
 	  }
 	};
 
 	Tank.prototype.moveLeft = function () {
 	  if (this.x > 0) {
-	    this.x -= 10;
+	    this.x -= 5;
 	  }
 	};
 
 	Tank.prototype.fire = function (game) {
-	  new Bullet(this.x + this.size.x / 2, this.y - 10, -10, game);
+	  new Bullet(this.x + this.size.x / 2, this.y - 10, -5, game);
 	};
 
 	Tank.prototype.draw = function (context) {
-	  context.drawImage(this.image, this.x, this.y - this.size.y);
+	  context.drawImage(this.image, this.x, this.y - this.size.y, 111, 50);
 	};
 
 	module.exports = Tank;
@@ -249,7 +246,7 @@
 	"use strict";
 
 	var Bullet = function Bullet(x, y, fireSpeed, game) {
-	  this.size = { x: 8, y: 8 };
+	  this.size = { x: 4, y: 4 };
 	  this.x = x;
 	  this.y = y;
 	  this.velocity = {};
@@ -279,7 +276,7 @@
 	var Bullet = __webpack_require__(4);
 
 	var Alien = function Alien(location, i, speed) {
-	  this.size = { x: 60, y: 60 };
+	  this.size = { x: 30, y: 30 };
 	  this.x = location.x;
 	  this.y = location.y;
 	  this.alien_image = new Array(new Image(), new Image());
@@ -298,22 +295,22 @@
 	};
 
 	Alien.prototype.update = function (game, fireSpeed, fireRate) {
-	  if (this.patrol < 0 || this.patrol > 325) {
+	  if (this.patrol < 0 || this.patrol > 150) {
 	    this.speed = -this.speed;
 	  }
 	  this.x += this.speed;
 	  this.patrol += this.speed;
 	  if (Math.random() > fireRate && !game.aliensBelow(this)) {
-	    new Bullet(this.x + this.size.x / 2, this.y + 60, fireSpeed, game);
+	    new Bullet(this.x + this.size.x / 2, this.y + 30, fireSpeed, game);
 	  }
 	};
 
 	Alien.prototype.draw = function (context, counter) {
 	  counter = counter % 20;
 	  if (counter >= 0 && counter < 10) {
-	    context.drawImage(this.alien_image[0], this.x, this.y, 60, 60);
+	    context.drawImage(this.alien_image[0], this.x, this.y, 30, 30);
 	  } else {
-	    context.drawImage(this.alien_image[1], this.x, this.y, 60, 60);
+	    context.drawImage(this.alien_image[1], this.x, this.y, 30, 30);
 	  }
 	};
 
@@ -333,8 +330,8 @@
 	  this.status = 1;
 	  this.points = 0;
 	  for (var i = 0; i < 24; i++) {
-	    var x = i % 8 * 110;
-	    var y = i % 3 * 80;
+	    var x = i % 8 * 60;
+	    var y = i % 3 * 40;
 	    this.bodies.push(new Alien({ x: x, y: y }, i % 3 + 1, speed));
 	  }
 	};
@@ -362,7 +359,6 @@
 	  if (points !== this.points) {
 	    game.points += this.points - points;
 	  }
-	  console.log(game.points);
 	  document.getElementById("current_score").innerHTML = game.points;
 	  for (var i = 0; i < this.bodies.length; i++) {
 	    this.bodies[i].update(this, fireSpeed, fireRate);
