@@ -90,6 +90,7 @@
 	      switch (game.status) {
 	        case "inGame":
 	          inGame(context, gameSize, game, fireSpeed, fireRate, counter);
+	          counter++;
 	          requestAnimationFrame(tick);
 	          break;
 	        case "won":
@@ -117,7 +118,6 @@
 	  game.level.update(game, fireSpeed, fireRate);
 	  context.clearRect(0, 0, gameSize.x, gameSize.y);
 	  drawObject(context, game, counter);
-	  counter++;
 	  update(game);
 	}
 
@@ -320,11 +320,11 @@
 	  this.x -= 1;
 	};
 
-	Alien.prototype.update = function (game, fireSpeed, fireRate) {
+	Alien.prototype.update = function (level, fireSpeed, fireRate) {
 	  this.updateSpeed();
 	  this.x += this.speed;
 	  this.patrol += this.speed;
-	  this.fireBullet(game, fireSpeed, fireRate);
+	  this.fireBullet(level, fireSpeed, fireRate);
 	};
 
 	Alien.prototype.updateSpeed = function () {
@@ -333,9 +333,9 @@
 	  }
 	};
 
-	Alien.prototype.fireBullet = function (game, fireSpeed, fireRate) {
-	  if (Math.random() > fireRate && !game.aliensBelow(this)) {
-	    new Bullet(this.x + this.size.x / 2, this.y + 30, fireSpeed, game);
+	Alien.prototype.fireBullet = function (level, fireSpeed, fireRate) {
+	  if (Math.random() > fireRate && !level.aliensBelow(this)) {
+	    new Bullet(this.x + this.size.x / 2, this.y + 30, fireSpeed, level);
 	  }
 	};
 
