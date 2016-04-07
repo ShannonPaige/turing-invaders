@@ -55,14 +55,14 @@ describe('Alien', function() {
     it('should switch direction if it hits the left side', function() {
       var alien = new Alien({ x: 50, y: 50}, 0, 1);
       alien.patrol = -1;
-      alien.update();
+      alien.updateSpeed();
       assert.equal(alien.speed, -1);
     });
 
     it('should switch direction if it hits the right side', function() {
       var alien = new Alien({ x: 50, y: 50}, 0, -1);
       alien.patrol = 151;
-      alien.update();
+      alien.updateSpeed();
       assert.equal(alien.speed, 1);
     });
 
