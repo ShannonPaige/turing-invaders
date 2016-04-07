@@ -68,16 +68,13 @@
 	  var canvas = document.getElementById('screen');
 	  var context = canvas.getContext('2d');
 	  var gameSize = { x: canvas.width, y: canvas.height };
-	  var startPoints = localStorage.getItem('points') || 0;
-	  var startInitials = localStorage.getItem('initials') || "";
-	  document.getElementById('high_score').innerHTML = startInitials + " " + startPoints;
 	  var startImage = new Image();
-	  var loseImage = new Image();
-	  var winImage = new Image();
 	  startImage.src = "./assets/images/start.png";
+	  var loseImage = new Image();
 	  loseImage.src = "./assets/images/lose.jpg";
+	  var winImage = new Image();
 	  winImage.src = "./assets/images/win.jpg";
-
+	  renderPoints();
 	  startImage.onload = function () {
 	    renderStart(context, startImage);
 	  };
@@ -92,55 +89,84 @@
 	    var tick = function tick() {
 	      switch (game.status) {
 	        case "inGame":
-	          game.level.update(game, fireSpeed, fireRate);
-	          context.clearRect(0, 0, gameSize.x, gameSize.y);
-	          drawObject(context, game, counter);
-	          counter++;
-	          update(game);
+	          inGame(context, gameSize, game, fireSpeed, fireRate, counter);
 	          requestAnimationFrame(tick);
 	          break;
 	        case "won":
-	          context.clearRect(0, 0, gameSize.x, gameSize.y);
-	          renderWin(context, winImage);
-	          game.status = "inGame";
-	          speed += 0.5;
-	          fireSpeed += 1;
-	          fireRate -= 0.003;
+	          won(context, gameSize, game, speed, fireSpeed, fireRate, winImage);
 	          break;
 	        case "lost":
-	          context.clearRect(0, 0, gameSize.x, gameSize.y);
-	          renderLose(context, loseImage);
-	          game.status = "newGame";
-	          var highScore = localStorage.getItem('points');
-	          speed = 0.5;
-	          fireSpeed = 1;
-	          fireRate = 0.995;
-	          if (game.points > highScore) {
-	            document.getElementById('form').classList.remove("hidden");
-	            var button = document.getElementById('button');
-	            button.addEventListener("click", function (e) {
-	              e.preventDefault();
-	              var initials = document.getElementById('input').value;
-	              localStorage.setItem('initials', initials);
-	              localStorage.setItem('points', game.points);
-	              document.getElementById('high_score').innerHTML = initials + " " + game.points;
-	              button.removeEventListener("click", this, false);
-	              document.getElementById('form').classList.add("hidden");
-	            });
-	          }
+	          lost(context, gameSize, game, speed, fireSpeed, fireRate, loseImage);
 	          break;
 	        case "newGame":
-	          document.getElementById('form').classList.add("hidden");
-	          context.clearRect(0, 0, gameSize.x, gameSize.y);
-	          game = new Game(gameSize, context);
-	          renderStart(context, startImage);
+	          game = newGame(context, gameSize, startImage);
 	          break;
-
 	      }
 	    };
 	    tick();
 	  };
 	};
+
+	function renderPoints() {
+	  var startPoints = localStorage.getItem('points') || 0;
+	  var startInitials = localStorage.getItem('initials') || "";
+	  document.getElementById('high_score').innerHTML = startInitials + " " + startPoints;
+	}
+
+	function inGame(context, gameSize, game, fireSpeed, fireRate, counter) {
+	  game.level.update(game, fireSpeed, fireRate);
+	  context.clearRect(0, 0, gameSize.x, gameSize.y);
+	  drawObject(context, game, counter);
+	  counter++;
+	  update(game);
+	}
+
+	function won(context, gameSize, game, speed, fireSpeed, fireRate, winImage) {
+	  context.clearRect(0, 0, gameSize.x, gameSize.y);
+	  renderWin(context, winImage);
+	  game.status = "inGame";
+	  speed += 0.5;
+	  fireSpeed += 1;
+	  fireRate -= 0.003;
+	}
+
+	function lost(context, gameSize, game, speed, fireSpeed, fireRate, loseImage) {
+	  context.clearRect(0, 0, gameSize.x, gameSize.y);
+	  renderLose(context, loseImage);
+	  game.status = "newGame";
+	  var highScore = localStorage.getItem('points');
+	  speed = 0.5;
+	  fireSpeed = 1;
+	  fireRate = 0.995;
+	  if (game.points > highScore) {
+	    updateScoreboard(game);
+	  }
+	}
+
+	function updateScoreboard(game) {
+	  document.getElementById('form').classList.remove("hidden");
+	  var button = document.getElementById('button');
+	  button.addEventListener("click", function (e) {
+	    renderHighScore(e, game, button);
+	  });
+	}
+
+	function renderHighScore(e, game, button) {
+	  e.preventDefault();
+	  var initials = document.getElementById('input').value;
+	  localStorage.setItem('initials', initials);
+	  localStorage.setItem('points', game.points);
+	  document.getElementById('high_score').innerHTML = initials + " " + game.points;
+	  button.removeEventListener("click", this, false);
+	  document.getElementById('form').classList.add("hidden");
+	}
+
+	function newGame(context, gameSize, startImage) {
+	  document.getElementById('form').classList.add("hidden");
+	  context.clearRect(0, 0, gameSize.x, gameSize.y);
+	  renderStart(context, startImage);
+	  return new Game(gameSize, context);
+	}
 
 	function drawObject(context, game, counter) {
 	  for (var i = 0; i < game.level.bodies.length; i++) {
@@ -205,14 +231,14 @@
 	  this.image.src = "./assets/images/tank.png";
 	};
 
-	Tank.prototype.update = function (game) {
+	Tank.prototype.update = function (level) {
 	  window.onkeydown = (function (e) {
 	    if (e.keyCode === 37) {
 	      this.moveLeft();
 	    } else if (e.keyCode === 39) {
 	      this.moveRight();
 	    } else if (e.keyCode === 32) {
-	      this.fire(game);
+	      this.fire(level);
 	    }
 	  }).bind(this);
 	};
@@ -229,8 +255,8 @@
 	  }
 	};
 
-	Tank.prototype.fire = function (game) {
-	  new Bullet(this.x + this.size.x / 2, this.y - 10, -5, game);
+	Tank.prototype.fire = function (level) {
+	  new Bullet(this.x + this.size.x / 2, this.y - 10, -5, level);
 	};
 
 	Tank.prototype.draw = function (context) {
@@ -245,14 +271,14 @@
 
 	"use strict";
 
-	var Bullet = function Bullet(x, y, fireSpeed, game) {
+	var Bullet = function Bullet(x, y, fireSpeed, level) {
 	  this.size = { x: 4, y: 4 };
 	  this.x = x;
 	  this.y = y;
 	  this.velocity = {};
 	  this.velocity.x = 0;
 	  this.velocity.y = fireSpeed;
-	  game.addBody(this);
+	  level.addBody(this);
 	};
 
 	Bullet.prototype.update = function () {
@@ -279,11 +305,11 @@
 	  this.size = { x: 30, y: 30 };
 	  this.x = location.x;
 	  this.y = location.y;
+	  this.speed = speed;
+	  this.patrol = 0;
 	  this.alien_image = new Array(new Image(), new Image());
 	  this.alien_image[0].src = "./assets/images/alien-" + i + "-0.png";
 	  this.alien_image[1].src = "./assets/images/alien-" + i + "-1.png";
-	  this.patrol = 0;
-	  this.speed = speed;
 	};
 
 	Alien.prototype.moveRight = function () {
@@ -295,11 +321,19 @@
 	};
 
 	Alien.prototype.update = function (game, fireSpeed, fireRate) {
+	  this.updateSpeed();
+	  this.x += this.speed;
+	  this.patrol += this.speed;
+	  this.fireBullet(game, fireSpeed, fireRate);
+	};
+
+	Alien.prototype.updateSpeed = function () {
 	  if (this.patrol < 0 || this.patrol > 150) {
 	    this.speed = -this.speed;
 	  }
-	  this.x += this.speed;
-	  this.patrol += this.speed;
+	};
+
+	Alien.prototype.fireBullet = function (game, fireSpeed, fireRate) {
 	  if (Math.random() > fireRate && !game.aliensBelow(this)) {
 	    new Bullet(this.x + this.size.x / 2, this.y + 30, fireSpeed, game);
 	  }
@@ -327,7 +361,6 @@
 
 	var Level = function Level(gameSize, context, speed) {
 	  this.bodies = [new Tank(gameSize)];
-	  this.status = 1;
 	  this.points = 0;
 	  for (var i = 0; i < 24; i++) {
 	    var x = i % 8 * 60;
@@ -345,6 +378,14 @@
 	};
 
 	Level.prototype.update = function (game, fireSpeed, fireRate) {
+	  this.updateBodies();
+	  this.updatePoints(game);
+	  for (var i = 0; i < this.bodies.length; i++) {
+	    this.bodies[i].update(this, fireSpeed, fireRate);
+	  }
+	};
+
+	Level.prototype.updateBodies = function () {
 	  var self = this;
 	  var noCollision = function noCollision(body1) {
 	    return self.bodies.filter(function (body2) {
@@ -352,6 +393,9 @@
 	    }).length === 0;
 	  };
 	  this.bodies = this.bodies.filter(noCollision);
+	};
+
+	Level.prototype.updatePoints = function (game) {
 	  var points = this.points;
 	  this.points = 24 - this.bodies.filter(function (body) {
 	    return body instanceof Alien;
@@ -360,9 +404,6 @@
 	    game.points += this.points - points;
 	  }
 	  document.getElementById("current_score").innerHTML = game.points;
-	  for (var i = 0; i < this.bodies.length; i++) {
-	    this.bodies[i].update(this, fireSpeed, fireRate);
-	  }
 	};
 
 	Level.prototype.aliensBelow = function (alien) {

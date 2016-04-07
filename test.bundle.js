@@ -77,14 +77,14 @@
 	  this.image.src = "./assets/images/tank.png";
 	};
 
-	Tank.prototype.update = function (game) {
+	Tank.prototype.update = function (level) {
 	  window.onkeydown = (function (e) {
 	    if (e.keyCode === 37) {
 	      this.moveLeft();
 	    } else if (e.keyCode === 39) {
 	      this.moveRight();
 	    } else if (e.keyCode === 32) {
-	      this.fire(game);
+	      this.fire(level);
 	    }
 	  }).bind(this);
 	};
@@ -101,8 +101,8 @@
 	  }
 	};
 
-	Tank.prototype.fire = function (game) {
-	  new Bullet(this.x + this.size.x / 2, this.y - 10, -5, game);
+	Tank.prototype.fire = function (level) {
+	  new Bullet(this.x + this.size.x / 2, this.y - 10, -5, level);
 	};
 
 	Tank.prototype.draw = function (context) {
@@ -117,14 +117,14 @@
 
 	"use strict";
 
-	var Bullet = function Bullet(x, y, fireSpeed, game) {
+	var Bullet = function Bullet(x, y, fireSpeed, level) {
 	  this.size = { x: 4, y: 4 };
 	  this.x = x;
 	  this.y = y;
 	  this.velocity = {};
 	  this.velocity.x = 0;
 	  this.velocity.y = fireSpeed;
-	  game.addBody(this);
+	  level.addBody(this);
 	};
 
 	Bullet.prototype.update = function () {
@@ -151,11 +151,11 @@
 	  this.size = { x: 30, y: 30 };
 	  this.x = location.x;
 	  this.y = location.y;
+	  this.speed = speed;
+	  this.patrol = 0;
 	  this.alien_image = new Array(new Image(), new Image());
 	  this.alien_image[0].src = "./assets/images/alien-" + i + "-0.png";
 	  this.alien_image[1].src = "./assets/images/alien-" + i + "-1.png";
-	  this.patrol = 0;
-	  this.speed = speed;
 	};
 
 	Alien.prototype.moveRight = function () {
@@ -167,11 +167,19 @@
 	};
 
 	Alien.prototype.update = function (game, fireSpeed, fireRate) {
+	  this.updateSpeed();
+	  this.x += this.speed;
+	  this.patrol += this.speed;
+	  this.fireBullet(game, fireSpeed, fireRate);
+	};
+
+	Alien.prototype.updateSpeed = function () {
 	  if (this.patrol < 0 || this.patrol > 150) {
 	    this.speed = -this.speed;
 	  }
-	  this.x += this.speed;
-	  this.patrol += this.speed;
+	};
+
+	Alien.prototype.fireBullet = function (game, fireSpeed, fireRate) {
 	  if (Math.random() > fireRate && !game.aliensBelow(this)) {
 	    new Bullet(this.x + this.size.x / 2, this.y + 30, fireSpeed, game);
 	  }
@@ -189,7 +197,70 @@
 	module.exports = Alien;
 
 /***/ },
-/* 6 */,
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var Tank = __webpack_require__(3);
+	var Alien = __webpack_require__(5);
+
+	var Level = function Level(gameSize, context, speed) {
+	  this.bodies = [new Tank(gameSize)];
+	  this.points = 0;
+	  for (var i = 0; i < 24; i++) {
+	    var x = i % 8 * 60;
+	    var y = i % 3 * 40;
+	    this.bodies.push(new Alien({ x: x, y: y }, i % 3 + 1, speed));
+	  }
+	};
+
+	Level.prototype.addBody = function (body) {
+	  this.bodies.push(body);
+	};
+
+	Level.prototype.collision = function (body1, body2) {
+	  return !(body1 === body2 || body1.x + body1.size.x < body2.x || body1.y + body1.size.y < body2.y || body1.x > body2.x + body2.size.x || body1.y > body2.y + body2.size.y);
+	};
+
+	Level.prototype.update = function (game, fireSpeed, fireRate) {
+	  this.updateBodies();
+	  this.updatePoints(game);
+	  for (var i = 0; i < this.bodies.length; i++) {
+	    this.bodies[i].update(this, fireSpeed, fireRate);
+	  }
+	};
+
+	Level.prototype.updateBodies = function () {
+	  var self = this;
+	  var noCollision = function noCollision(body1) {
+	    return self.bodies.filter(function (body2) {
+	      return self.collision(body1, body2);
+	    }).length === 0;
+	  };
+	  this.bodies = this.bodies.filter(noCollision);
+	};
+
+	Level.prototype.updatePoints = function (game) {
+	  var points = this.points;
+	  this.points = 24 - this.bodies.filter(function (body) {
+	    return body instanceof Alien;
+	  }).length;
+	  if (points !== this.points) {
+	    game.points += this.points - points;
+	  }
+	  document.getElementById("current_score").innerHTML = game.points;
+	};
+
+	Level.prototype.aliensBelow = function (alien) {
+	  return this.bodies.filter(function (body) {
+	    return body instanceof Alien && body.y > alien.y && body.x - alien.x < alien.size.x;
+	  }).length > 0;
+	};
+
+	module.exports = Level;
+
+/***/ },
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -496,22 +567,40 @@
 
 	describe('Tank', function () {
 	  context('default attributes', function () {
-	    var tank = new Tank({ x: 1200, y: 600 });
+	    var tank = new Tank({ x: 600, y: 400 });
 
 	    it('should assign an x coordinate', function () {
-	      assert.equal(tank.x, 489);
+	      assert.equal(tank.x, 244.5);
 	    });
 
 	    it('should assign a y coordinate', function () {
-	      assert.equal(tank.y, 500);
+	      assert.equal(tank.y, 375);
 	    });
 
 	    it('should assign a width', function () {
-	      assert.equal(tank.size.x, 222);
+	      assert.equal(tank.size.x, 111);
 	    });
 
 	    it('should assign a height', function () {
-	      assert.equal(tank.size.y, 100);
+	      assert.equal(tank.size.y, 25);
+	    });
+
+	    it('should assign a default image', function () {
+	      assert.equal(tank.image.src, "http://localhost:8080/assets/images/tank.png");
+	    });
+	  });
+
+	  context('moving', function () {
+	    it('should move right', function () {
+	      var tank = new Tank({ x: 600, y: 400 });
+	      tank.moveRight();
+	      assert.equal(tank.x, 249.5);
+	    });
+
+	    it('should move left', function () {
+	      var tank = new Tank({ x: 600, y: 400 });
+	      tank.moveLeft();
+	      assert.equal(tank.x, 239.5);
 	    });
 	  });
 	});
@@ -8597,10 +8686,12 @@
 	var assert = chai.assert;
 
 	var Bullet = __webpack_require__(4);
+	var Level = __webpack_require__(6);
 
 	describe('Bullet', function () {
 	  context('default attributes', function () {
-	    var bullet = new Bullet({ x: 550, y: 550 });
+	    var level = new Level({ x: 600, y: 400 }, null, 3);
+	    var bullet = new Bullet(550, 550, -3, level);
 
 	    it('should assign an x coordinate', function () {
 	      assert.equal(bullet.x, 550);
@@ -8611,11 +8702,35 @@
 	    });
 
 	    it('should assign a width', function () {
-	      assert.equal(bullet.size.x, 8);
+	      assert.equal(bullet.size.x, 4);
 	    });
 
 	    it('should assign a height', function () {
-	      assert.equal(bullet.size.y, 8);
+	      assert.equal(bullet.size.y, 4);
+	    });
+
+	    it('should assign an x velocity', function () {
+	      assert.equal(bullet.velocity.x, 0);
+	    });
+
+	    it('should assign an y velocity', function () {
+	      assert.equal(bullet.velocity.y, -3);
+	    });
+	  });
+
+	  context('updating', function () {
+	    it('should update its x velocity', function () {
+	      var level = new Level({ x: 600, y: 400 }, null, 3);
+	      var bullet = new Bullet(550, 550, -3, level);
+	      bullet.update();
+	      assert.equal(bullet.x, 550);
+	    });
+
+	    it('should update its y velocity', function () {
+	      var level = new Level({ x: 600, y: 400 }, null, 3);
+	      var bullet = new Bullet(550, 550, -3, level);
+	      bullet.update();
+	      assert.equal(bullet.y, 547);
 	    });
 	  });
 	});
@@ -8633,7 +8748,7 @@
 
 	describe('Alien', function () {
 	  context('default attributes', function () {
-	    var alien = new Alien({ x: 550, y: 550 });
+	    var alien = new Alien({ x: 550, y: 550 }, 0, 1);
 
 	    it('should assign an x coordinate', function () {
 	      assert.equal(alien.x, 550);
@@ -8644,11 +8759,66 @@
 	    });
 
 	    it('should assign a width', function () {
-	      assert.equal(alien.size.x, 60);
+	      assert.equal(alien.size.x, 30);
 	    });
 
 	    it('should assign a height', function () {
-	      assert.equal(alien.size.y, 60);
+	      assert.equal(alien.size.y, 30);
+	    });
+
+	    it('should assign a patrol', function () {
+	      assert.equal(alien.patrol, 0);
+	    });
+
+	    it('should assign two default images', function () {
+	      assert.equal(alien.alien_image[0].src, "http://localhost:8080/assets/images/alien-0-0.png");
+	      assert.equal(alien.alien_image[1].src, "http://localhost:8080/assets/images/alien-0-1.png");
+	    });
+
+	    it('should assign a speed', function () {
+	      assert.equal(alien.speed, 1);
+	    });
+	  });
+
+	  context('moving', function () {
+	    it('should move right', function () {
+	      var alien = new Alien({ x: 50, y: 50 }, 0, 1);
+	      alien.moveRight();
+	      assert.equal(alien.x, 51);
+	    });
+
+	    it('should move left', function () {
+	      var alien = new Alien({ x: 50, y: 50 }, 0, 1);
+	      alien.moveLeft();
+	      assert.equal(alien.x, 49);
+	    });
+	  });
+
+	  context('updating', function () {
+	    it('should switch direction if it hits the left side', function () {
+	      var alien = new Alien({ x: 50, y: 50 }, 0, 1);
+	      alien.patrol = -1;
+	      alien.updateSpeed();
+	      assert.equal(alien.speed, -1);
+	    });
+
+	    it('should switch direction if it hits the right side', function () {
+	      var alien = new Alien({ x: 50, y: 50 }, 0, -1);
+	      alien.patrol = 151;
+	      alien.updateSpeed();
+	      assert.equal(alien.speed, 1);
+	    });
+
+	    it('updates its location', function () {
+	      var alien = new Alien({ x: 50, y: 50 }, 0, 1);
+	      alien.update();
+	      assert.equal(alien.x, 51);
+	    });
+
+	    it('updates its patrol', function () {
+	      var alien = new Alien({ x: 50, y: 50 }, 0, 1);
+	      alien.update();
+	      assert.equal(alien.patrol, 1);
 	    });
 	  });
 	});
