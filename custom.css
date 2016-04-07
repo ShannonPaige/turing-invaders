@@ -21,10 +21,10 @@ canvas {
 
 section {
   float: left;
-  height: 400px;
-  background:black;
+  height: 533px;
+  background: black;
   padding-left: 0;
-  padding-right: 0px;
+  padding-right: 10px;
   margin-left: auto;
   margin-right: 0;
   display: block;
