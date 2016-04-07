@@ -42,15 +42,340 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var sayHello = function sayHello() {
-	  return console.log('Hello');
+	window.onload = function () {
+	  var draw = __webpack_require__(1);
+	  var audio = new Audio('assets/audio/music.mp3');
+	  audio.play();
+	  draw();
 	};
 
-	sayHello();
+/***/ },
+/* 1 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var Game = __webpack_require__(2);
+	var Tank = __webpack_require__(3);
+	var Alien = __webpack_require__(5);
+	var Level = __webpack_require__(6);
+
+	var Draw = function Draw() {
+	  var canvas = document.getElementById('screen');
+	  var context = canvas.getContext('2d');
+	  var gameSize = { x: canvas.width, y: canvas.height };
+	  var startPoints = localStorage.getItem('points') || 0;
+	  var startInitials = localStorage.getItem('initials') || "";
+	  document.getElementById('high_score').innerHTML = startInitials + " " + startPoints;
+	  var startImage = new Image();
+	  var loseImage = new Image();
+	  var winImage = new Image();
+	  startImage.src = "assets/images/start.png";
+	  loseImage.src = "assets/images/lose.jpg";
+	  winImage.src = "assets/images/win.jpg";
+
+	  startImage.onload = function () {
+	    renderStart(context, startImage);
+	  };
+	  var game = new Game(gameSize, context);
+	  var speed = 1;
+	  var fireSpeed = 3;
+	  var fireRate = 0.995;
+	  canvas.onclick = function () {
+	    game.level = new Level(gameSize, context, speed);
+	    speed += 1;
+	    fireSpeed += 1;
+	    fireRate -= 0.003;
+	    var counter = 0;
+	    var tick = function tick() {
+	      switch (game.status) {
+	        case "inGame":
+	          game.level.update(game, fireSpeed, fireRate);
+	          context.clearRect(0, 0, gameSize.x, gameSize.y);
+	          drawObject(context, game, counter);
+	          counter++;
+	          update(game);
+	          requestAnimationFrame(tick);
+	          break;
+	        case "won":
+	          console.log("Winning Level");
+	          context.clearRect(0, 0, gameSize.x, gameSize.y);
+	          renderWin(context, winImage);
+	          game.status = "inGame";
+	          break;
+	        case "lost":
+	          console.log("Lost");
+	          context.clearRect(0, 0, gameSize.x, gameSize.y);
+	          renderLose(context, loseImage);
+	          game.status = "newGame";
+	          var highScore = localStorage.getItem('points');
+	          speed = 1;
+	          fireSpeed = 3;
+	          fireRate = 0.995;
+	          if (game.points > highScore) {
+	            document.getElementById('form').classList.remove("hidden");
+	            var button = document.getElementById('button');
+	            button.addEventListener("click", function (e) {
+	              e.preventDefault();
+	              var initials = document.getElementById('input').value;
+	              localStorage.setItem('initials', initials);
+	              localStorage.setItem('points', game.points);
+	              document.getElementById('high_score').innerHTML = initials + " " + game.points;
+	              button.removeEventListener("click", this, false);
+	              document.getElementById('form').classList.add("hidden");
+	            });
+	          }
+	          break;
+	        case "newGame":
+	          document.getElementById('form').classList.add("hidden");
+	          context.clearRect(0, 0, gameSize.x, gameSize.y);
+	          game = new Game(gameSize, context);
+	          renderStart(context, startImage);
+	          break;
+
+	      }
+	    };
+	    tick();
+	  };
+	};
+
+	function drawObject(context, game, counter) {
+	  for (var i = 0; i < game.level.bodies.length; i++) {
+	    game.level.bodies[i].draw(context, counter);
+	  }
+	}
+
+	function renderStart(context, image) {
+	  context.drawImage(image, 450, 100);
+	}
+
+	function renderLose(context, image) {
+	  context.drawImage(image, 250, 50, 500, 500);
+	}
+
+	function renderWin(context, image) {
+	  context.drawImage(image, 250, 50, 500, 250);
+	}
+
+	function update(game) {
+	  var aliens = game.level.bodies.filter(function (body) {
+	    return body instanceof Alien;
+	  });
+	  var tank = game.level.bodies.filter(function (body) {
+	    return body instanceof Tank;
+	  });
+	  if (tank.length > 0 && aliens.length === 0) {
+	    console.log("Yow won");
+	    game.status = "won";
+	  } else if (aliens.length > 0 && tank.length === 0) {
+	    console.log("You lost");
+	    game.status = "lost";
+	  }
+	}
+
+	module.exports = Draw;
+
+/***/ },
+/* 2 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	var Game = function Game() {
+	  this.status = "inGame";
+	  this.points = 0;
+	};
+
+	module.exports = Game;
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var Bullet = __webpack_require__(4);
+
+	var Tank = function Tank(gameSize) {
+	  this.size = { x: 222, y: 50 };
+	  this.x = (gameSize.x - this.size.x) / 2;
+	  this.y = gameSize.y - this.size.y;
+	  this.image = new Image();
+	  this.image.src = "assets/images/tank.png";
+	};
+
+	Tank.prototype.update = function (game) {
+	  window.onkeydown = (function (e) {
+	    if (e.keyCode === 37) {
+	      this.moveLeft();
+	    } else if (e.keyCode === 39) {
+	      this.moveRight();
+	    } else if (e.keyCode === 32) {
+	      this.fire(game);
+	    }
+	  }).bind(this);
+	};
+
+	Tank.prototype.moveRight = function () {
+	  if (this.x < 1200 - this.size.x) {
+	    this.x += 10;
+	  }
+	};
+
+	Tank.prototype.moveLeft = function () {
+	  if (this.x > 0) {
+	    this.x -= 10;
+	  }
+	};
+
+	Tank.prototype.fire = function (game) {
+	  new Bullet(this.x + this.size.x / 2, this.y - 10, -10, game);
+	};
+
+	Tank.prototype.draw = function (context) {
+	  context.drawImage(this.image, this.x, this.y - this.size.y);
+	};
+
+	module.exports = Tank;
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	var Bullet = function Bullet(x, y, fireSpeed, game) {
+	  this.size = { x: 8, y: 8 };
+	  this.x = x;
+	  this.y = y;
+	  this.velocity = {};
+	  this.velocity.x = 0;
+	  this.velocity.y = fireSpeed;
+	  game.addBody(this);
+	};
+
+	Bullet.prototype.update = function () {
+	  this.x += this.velocity.x;
+	  this.y += this.velocity.y;
+	};
+
+	Bullet.prototype.draw = function (context) {
+	  context.fillStyle = "rgb(255,255,255)";
+	  context.fillRect(this.x, this.y, this.size.x, this.size.y);
+	};
+
+	module.exports = Bullet;
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var Bullet = __webpack_require__(4);
+
+	var Alien = function Alien(location, i, speed) {
+	  this.size = { x: 60, y: 60 };
+	  this.x = location.x;
+	  this.y = location.y;
+	  this.alien_image = new Array(new Image(), new Image());
+	  this.alien_image[0].src = "assets/images/alien-" + i + "-0.png";
+	  this.alien_image[1].src = "assets/images/alien-" + i + "-1.png";
+	  this.patrol = 0;
+	  this.speed = speed;
+	};
+
+	Alien.prototype.moveRight = function () {
+	  this.x += 1;
+	};
+
+	Alien.prototype.moveLeft = function () {
+	  this.x -= 1;
+	};
+
+	Alien.prototype.update = function (game, fireSpeed, fireRate) {
+	  if (this.patrol < 0 || this.patrol > 325) {
+	    this.speed = -this.speed;
+	  }
+	  this.x += this.speed;
+	  this.patrol += this.speed;
+	  if (Math.random() > fireRate && !game.aliensBelow(this)) {
+	    new Bullet(this.x + this.size.x / 2, this.y + 60, fireSpeed, game);
+	  }
+	};
+
+	Alien.prototype.draw = function (context, counter) {
+	  counter = counter % 20;
+	  if (counter >= 0 && counter < 10) {
+	    context.drawImage(this.alien_image[0], this.x, this.y, 60, 60);
+	  } else {
+	    context.drawImage(this.alien_image[1], this.x, this.y, 60, 60);
+	  }
+	};
+
+	module.exports = Alien;
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var Tank = __webpack_require__(3);
+	var Alien = __webpack_require__(5);
+
+	var Level = function Level(gameSize, context, speed) {
+	  this.bodies = [new Tank(gameSize)];
+	  this.status = 1;
+	  this.points = 0;
+	  for (var i = 0; i < 24; i++) {
+	    var x = i % 8 * 110;
+	    var y = i % 3 * 80;
+	    this.bodies.push(new Alien({ x: x, y: y }, i % 3 + 1, speed));
+	  }
+	};
+
+	Level.prototype.addBody = function (body) {
+	  this.bodies.push(body);
+	};
+
+	Level.prototype.collision = function (body1, body2) {
+	  return !(body1 === body2 || body1.x + body1.size.x < body2.x || body1.y + body1.size.y < body2.y || body1.x > body2.x + body2.size.x || body1.y > body2.y + body2.size.y);
+	};
+
+	Level.prototype.update = function (game, fireSpeed, fireRate) {
+	  var self = this;
+	  var noCollision = function noCollision(body1) {
+	    return self.bodies.filter(function (body2) {
+	      return self.collision(body1, body2);
+	    }).length === 0;
+	  };
+	  this.bodies = this.bodies.filter(noCollision);
+	  var points = this.points;
+	  this.points = 24 - this.bodies.filter(function (body) {
+	    return body instanceof Alien;
+	  }).length;
+	  if (points !== this.points) {
+	    game.points += this.points - points;
+	  }
+	  console.log(game.points);
+	  document.getElementById("current_score").innerHTML = game.points;
+	  for (var i = 0; i < this.bodies.length; i++) {
+	    this.bodies[i].update(this, fireSpeed, fireRate);
+	  }
+	};
+
+	Level.prototype.aliensBelow = function (alien) {
+	  return this.bodies.filter(function (body) {
+	    return body instanceof Alien && body.y > alien.y && body.x - alien.x < alien.size.x;
+	  }).length > 0;
+	};
+
+	module.exports = Level;
 
 /***/ }
 /******/ ]);
