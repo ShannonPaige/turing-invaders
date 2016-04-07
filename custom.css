@@ -1,5 +1,4 @@
 header {
-  background:black;
   padding-left: 0;
   padding-right: 0;
   margin-left: auto;
@@ -31,8 +30,12 @@ section {
   display: block;
 }
 
-h1, h2, h3, p, form {
+h2, h3, p, form {
   color: white;
+  font-family: 'Press Start 2P', cursive;
+}
+
+h1, h4 {
   font-family: 'Press Start 2P', cursive;
 }
 
