@@ -48,7 +48,7 @@
 
 	window.onload = function () {
 	  var draw = __webpack_require__(1);
-	  var audio = new Audio('assets/audio/music.mp3');
+	  var audio = new Audio('./assets/audio/music.mp3');
 	  audio.play();
 	  draw();
 	};
@@ -74,9 +74,9 @@
 	  var startImage = new Image();
 	  var loseImage = new Image();
 	  var winImage = new Image();
-	  startImage.src = "assets/images/start.png";
-	  loseImage.src = "assets/images/lose.jpg";
-	  winImage.src = "assets/images/win.jpg";
+	  startImage.src = "./assets/images/start.png";
+	  loseImage.src = "./assets/images/lose.jpg";
+	  winImage.src = "./assets/images/win.jpg";
 
 	  startImage.onload = function () {
 	    renderStart(context, startImage);
@@ -205,7 +205,7 @@
 	  this.x = (gameSize.x - this.size.x) / 2;
 	  this.y = gameSize.y - this.size.y;
 	  this.image = new Image();
-	  this.image.src = "assets/images/tank.png";
+	  this.image.src = "./assets/images/tank.png";
 	};
 
 	Tank.prototype.update = function (game) {
@@ -283,8 +283,8 @@
 	  this.x = location.x;
 	  this.y = location.y;
 	  this.alien_image = new Array(new Image(), new Image());
-	  this.alien_image[0].src = "assets/images/alien-" + i + "-0.png";
-	  this.alien_image[1].src = "assets/images/alien-" + i + "-1.png";
+	  this.alien_image[0].src = "./assets/images/alien-" + i + "-0.png";
+	  this.alien_image[1].src = "./assets/images/alien-" + i + "-1.png";
 	  this.patrol = 0;
 	  this.speed = speed;
 	};
