@@ -1,6 +1,6 @@
 # Turing Invaders
-
-[Turing Invaders in action](http://shannonpaige.github.io/turing-invaders/)
+=====================
+[Live Version](http://shannonpaige.github.io/turing-invaders/)
 
 A JavaScript version of Space Invaders. Use the left and right arrow keys to move the tank left and right. Avoid being shot by the aliens. Use the space bar to shoot at the aliens. Each level will get harder until you die. Try to beat your high score!
 
@@ -16,17 +16,15 @@ shoot more.
 ### Tools
 
 * Javascript
-* HTML 5 Canvas
+* HTML5 Canvas
 * Mocha / Chai
 
-
 ---
-### To run locally:
+### To Run Locally
 
 * clone the project
 * run `npm install` to install the required packages
 * start the server with `npm start` and visit `http://localhost:8080/webpack-dev-server/`
-
 
 ---
 Turing School Project
