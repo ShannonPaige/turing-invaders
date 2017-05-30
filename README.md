@@ -1,5 +1,5 @@
 # Turing Invaders
-=====================
+
 [Live Version](http://shannonpaige.github.io/turing-invaders/)
 
 A JavaScript version of Space Invaders. Use the left and right arrow keys to move the tank left and right. Avoid being shot by the aliens. Use the space bar to shoot at the aliens. Each level will get harder until you die. Try to beat your high score!
